@@ -1,279 +1,275 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kick Viewer</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      background: black;
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      height: 100%;
-      overflow: hidden;
-    }
-    #streamContainer.fullscreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1000;
-      background: black;
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-    #controls {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      z-index: 1001;
-      padding: 8px 16px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      backdrop-filter: none;
-      background: none;
-    }
-    #skipBtn {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 1001;
-      font-size: 0.75rem;
-      opacity: 1;
-      color: #ffcaff;
-      text-shadow: 0 0 4px #ffbdfd;
-      white-space: nowrap;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 8px 16px;
-    }
-    #topStreamerName {
-      font-weight: bold;
-      font-size: 0.75rem;
-      opacity: 1;
-      color: #ffcaff;
-      text-shadow: 0 0 4px #ffbdfd;
-      white-space: nowrap;
-    }
-    #timeDisplay {
-      font-size: 0.75rem;
-      opacity: 1;
-      color: #ffcaff;
-      text-shadow: 0 0 4px #ffbdfd;
-      white-space: nowrap;
-    }
-    #controls button {
-      background: none;
-      border: none;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="utf-8">
+<title>L4D2 No Heal Overlay</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --cyan: #19e6ff;
+    --cyan-soft: #8ff4ff;
+    --lav: #b79cff;
+    --purple: #8a4dff;
+    --pink: #ff8fc9;
+    --shark: #6f8a99;
+    --bg: rgba(8, 16, 34, 0.84);
+    --line: rgba(25, 230, 255, 0.5);
+    --text: #e4fbff;
+    --muted: #6b8794;
+    --grad: linear-gradient(90deg, var(--cyan), var(--lav) 55%, var(--pink));
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+    color: var(--text);
+    user-select: none;
+  }
+
+  /* gradient border helper */
+  .frame {
+    position: fixed;
+    background:
+      linear-gradient(var(--bg), var(--bg)) padding-box,
+      var(--grad) border-box;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    box-shadow: 0 0 24px rgba(25,230,255,.25), 0 0 40px rgba(183,156,255,.15);
+  }
+
+  /* ---------- TOP CENTER: REMAINING ---------- */
+  #top {
+    top: 30px; left: 50%;
+    transform: translateX(-50%);
+    max-width: 1100px; min-width: 460px;
+    padding: 12px 28px 14px;
+    text-align: center;
+  }
+  /* swimming shark fin along the top edge */
+  .swim { position: absolute; left: 0; right: 0; top: -17px; height: 20px; pointer-events: none; }
+  .fin {
+    position: absolute; top: 0; width: 30px; height: 19px; color: var(--shark);
+    filter: drop-shadow(0 0 5px rgba(25,230,255,.7));
+    animation: swim 14s ease-in-out infinite;
+  }
+  .fin::after { /* wake ripple */
+    content: ""; position: absolute; left: -6px; right: -6px; bottom: -2px; height: 3px;
+    border-radius: 50%; background: radial-gradient(closest-side, rgba(143,244,255,.8), transparent);
+  }
+  @keyframes swim {
+    0%   { left: 6%;  transform: scaleX(1); }
+    49%  { left: 90%; transform: scaleX(1); }
+    50%  { left: 90%; transform: scaleX(-1); }
+    99%  { left: 6%;  transform: scaleX(-1); }
+    100% { left: 6%;  transform: scaleX(1); }
+  }
+  /* bows on corners */
+  .bow { position: absolute; width: 30px; height: 20px; color: var(--purple);
+         filter: drop-shadow(0 0 5px rgba(183,156,255,.8)); }
+  .bow.l { left: -12px; top: -9px; transform: rotate(-22deg); }
+  .bow.r { right: -12px; top: -9px; transform: rotate(22deg) scaleX(-1); }
+  .spark { position: absolute; color: var(--pink); font-size: 14px; opacity: .9;
+           animation: twinkle 2.4s ease-in-out infinite; text-shadow: 0 0 8px var(--pink); }
+  .spark:nth-of-type(1) { left: 22px;  bottom: 10px; animation-delay: .2s; }
+  .spark:nth-of-type(2) { right: 24px; bottom: 12px; animation-delay: 1.1s; color: var(--cyan-soft); }
+  .spark:nth-of-type(3) { left: 40px;  top: 14px; font-size: 10px; animation-delay: 1.8s; color: var(--lav); }
+  .spark:nth-of-type(4) { right: 44px; top: 16px; font-size: 10px; animation-delay: .7s; }
+  @keyframes twinkle { 50% { opacity: .15; transform: scale(.6); } }
+
+  .title {
+    font-size: 13px; letter-spacing: .4em; text-transform: uppercase;
+    color: var(--lav); font-weight: 700;
+  }
+  .count {
+    margin-top: 2px;
+    font-size: 32px; font-weight: 800; letter-spacing: .06em;
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 10px rgba(25,230,255,.5));
+  }
+  .count small { font-size: 14px; letter-spacing: .22em; margin-left: 8px;
+                 color: var(--text); -webkit-text-fill-color: var(--text); opacity: .8; }
+  #chips { margin-top: 9px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .chip {
+    font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    padding: 3px 11px;
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(25,230,255,.18), rgba(138,77,255,.18));
+    color: var(--text);
+    border-radius: 999px;
+  }
+  .chip:nth-child(3n+2) { border-color: rgba(183,156,255,.7); }
+  .chip:nth-child(3n)   { border-color: rgba(255,143,201,.6); }
+  .done-all {
+    font-size: 20px; font-weight: 800; letter-spacing: .2em;
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    padding: 6px 0 2px; animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 50% { opacity: .55; } }
+
+  /* ---------- LEFT: ALL CAMPAIGNS ---------- */
+  #roster {
+    left: 18px; top: 50%;
+    transform: translateY(-50%);
+    width: 280px;
+    padding: 12px 12px 8px;
+  }
+  #roster.hidden { display: none; }
+  #roster h2 {
+    font-size: 12px; letter-spacing: .34em; text-transform: uppercase;
+    color: var(--lav); margin-bottom: 9px; text-align: center;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  #roster h2 svg { width: 18px; height: 11px; color: var(--cyan); }
+  .camp {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 10px; margin-bottom: 4px;
+    border: 1px solid rgba(183,156,255,.15);
+    border-left: 3px solid rgba(183,156,255,.35);
+    border-radius: 8px;
+    background: rgba(255,255,255,.025);
+    color: var(--muted);
+    font-size: 15px; font-weight: 600; letter-spacing: .05em;
+    cursor: pointer;
+    transition: all .18s ease;
+  }
+  .camp:hover { border-color: var(--line); color: var(--text); }
+  .camp .ico { width: 22px; height: 14px; flex: none; color: var(--muted); }
+  .camp.done {
+    color: #06111f;
+    background: var(--grad);
+    border-color: transparent;
+    border-left-color: #fff;
+    box-shadow: 0 0 14px rgba(25,230,255,.5), 0 0 18px rgba(255,143,201,.25);
+  }
+  .camp.done .ico { color: #06111f; }
+
+  /* ---------- CONTROLS ---------- */
+  #controls {
+    position: fixed; left: 18px; bottom: 18px; display: flex; gap: 6px;
+    opacity: 0; transition: opacity .2s;
+  }
+  body:hover #controls { opacity: 1; }
+  #controls button {
+    background: var(--bg); color: var(--cyan); border: 1px solid var(--line);
+    padding: 6px 12px; font-family: inherit; font-weight: 600; font-size: 12px;
+    letter-spacing: .12em; text-transform: uppercase; cursor: pointer; border-radius: 999px;
+  }
+  #controls button:hover { background: var(--grad); color: #06111f; }
+</style>
 </head>
 <body>
 
-  <div id="controls" class="cursor-pointer transition-all" onclick="document.getElementById('fullscreenBtn').click()">
-    <span id="topStreamerName">Loading...</span>
-    <span id="timeDisplay" class="ml-2"></span>
-    <button id="fullscreenBtn" class="hidden"><i class="fas fa-expand"></i></button>
-  </div>
-  <button id="skipBtn">⏩</button>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="fin" viewBox="0 0 32 20">
+      <path d="M1 19 C9 17 13 9 15 1 C18 9 23 15 31 19 Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="finline" viewBox="0 0 32 20">
+      <path d="M2 18 C9 16 13 9 15 2 C18 9 23 14 30 18 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="bow" viewBox="0 0 30 20">
+      <path d="M15 10 C8 0 0 1 2 10 C0 19 8 20 15 10 C22 20 30 19 28 10 C30 1 22 0 15 10 Z" fill="currentColor"/>
+      <circle cx="15" cy="10" r="3" fill="#ff8fc9"/>
+    </symbol>
+  </defs>
+</svg>
 
-  <div id="streamContainer" class="fullscreen">
-    <iframe id="streamIframe" allowfullscreen allow="autoplay; fullscreen"></iframe>
-  </div>
+<div id="top" class="frame">
+  <div class="swim"><svg class="fin"><use href="#fin"/></svg></div>
+  <svg class="bow l"><use href="#bow"/></svg>
+  <svg class="bow r"><use href="#bow"/></svg>
+  <span class="spark">✦</span><span class="spark">✦</span><span class="spark">✦</span><span class="spark">✦</span>
+  <div class="title">L4D2 · No Heal Challenge</div>
+  <div class="count"><span id="remaining">14</span><small>CAMPAIGNS LEFT</small></div>
+  <div id="chips"></div>
+</div>
 
-  <script>
-    const streamIframe = document.getElementById("streamIframe");
-    
-const cuteAsciiArts = [
-    "(っ◕‿◕)っ",
-    "ʕ•́ᴥ•̀ʔっ",
-    "(づ｡◕‿‿◕｡)づ",
-    "ヽ(♡‿♡)ノ",
-    "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
-    "⊂((・▽・))⊃",
-    "ヾ(＾-＾)ノ",
-    "(ﾉ´ヮ`)ﾉ*: ･ﾟ",
-    "(◠‿◠✿)",
-    "(｡♥‿♥｡)",
-    "｡^‿^｡",
-    "(≧◡≦)",
-    "(๑˃ᴗ˂)ﻭ",
-    "٩(◕‿◕｡)۶",
-    "(ღ✪v✪)ღ",
-    "o(≧▽≦)o",
-    "(っˆڡˆς)",
-    "(*≧ω≦*)",
-    "(*^ω^*)",
-    "ฅ^•ﻌ•^ฅ",
-    "(=^-ω-^=)",
-    "(*≧▽≦)",
-    "(=^･^=)",
-    "(・ω・)",
-    "(^・ω・^ )",
-    "(^人^)",
-    "( ´ ▽ ` )ﾉ",
-    "(*^▽^*)",
-    "ヽ(o＾▽＾o)ノ",
-    "o(〃＾▽＾〃)o",
-    "(≧◡≦) ♡",
-    "♡(˃͈ દ ˂͈ ༶ )",
-    "(｡♥‿♥｡)",
-    "(=^-ω-^=)",
-    "(≧◡≦)",
-    "ʕ •ᴥ•ʔ",
-    "(*≧∀≦*)",
-    "(｡♥‿♥｡)",
-    "(≧◡≦)v",
-    "(*≧▽≦)",
-    "(＾▽＾)",
-    "(⌒‿⌒)",
-    "(*≧ω≦)",
-    "(´｡• ᵕ •｡`)",
-    "(。U⁄ ⁄ω⁄ ⁄ U。)",
-    "（＾・ω・＾❁）",
-    "٩(๑❛ᴗ❛๑)۶",
-    "(*≧︶≦))(￣▽￣* )ゞ",
-    "(つ≧▽≦)つ",
-    "(*・∀・*)人(*・∀・*)",
-    "(ﾉ≧∀≦)ﾉ",
-    "ヽ(*⌒▽⌒*)ﾉ",
-    "٩(｡•́‿•̀｡)۶",
-    "( ˘ ³˘)♥",
-    "(灬º‿º灬)♡",
-    "( ˘⌣˘)♡(˘⌣˘ )",
-    "(つω`｡)",
-    "(〃￣ω￣〃ゞ",
-    "(つ≧▽≦)つ",
-    "(●´ω｀●)",
-    "(＾◡＾)",
-    "(♡°▽°♡)",
-    "(*≧ω≦)ﾉ",
-    "｡ﾟ(TヮT)ﾟ｡",
-    "(´｡• ω •｡`)",
-    "(⁄ ⁄•⁄ω⁄•⁄ ⁄)",
-    "( •⌄• ू )✧",
-    "(つ✧ω✧)つ",
-    "(o^▽^o)",
-    "〜(꒪꒳꒪)〜",
-    "(°◡°♡).:｡",
-    "(人*´∀｀)｡*ﾟ+",
-    "٩(♡ε♡ )۶",
-    "(∩^o^)⊃━☆",
-    "(∩˃o˂∩)♡",
-    "(๑♡3♡๑)",
-    "⁽⁽ଘ( ˊᵕˋ )ଓ⁾⁾",
-    "(੭ु｡╹▿╹｡)੭ु⁾⁾",
-    "(｡♥‿♥｡)",
-    "(=^ ◡ ^=)",
-    "ฅ(＾・ω・＾ฅ)",
-    "(*≧∀≦*)",
-    "(ᗒᗨᗕ)",
-    "(U ᵕ U❁)",
-    "(•ө•)♡",
-    "(*꒦ິ꒳꒦ີ)",
-    "٩(๛ ˘ ³˘)۶♥",
-    "( ˘▽˘)っ♨",
-    "(づ｡◕‿‿◕｡)づ",
-    "(＾・ω・＾❁)",
-    "(◍•ᴗ•◍)❤",
-    "(>̯-̮<̯)",
-    "(๑˘︶˘๑)",
-    "(๑˃ᴗ˂)ﻭ",
-    "(ﾉ´ヮ`)ﾉ*: ･ﾟ✧",
-    "(✿╹◡╹)",
-    "(´▽`ʃ♡ƪ)",
-    "(*´∇｀*)",
-    "✿♥‿♥✿",
-    "(｡♥‿♥｡)ﾉ♡",
-    "✧*｡٩(ˊωˋ*)و✧*｡"
-];
+<div id="roster" class="frame">
+  <h2><svg><use href="#fin"/></svg>Campaigns<svg style="transform:scaleX(-1)"><use href="#fin"/></svg></h2>
+  <div id="list"></div>
+</div>
 
+<div id="controls">
+  <button id="toggleRoster">Hide list</button>
+  <button id="reset">Reset all</button>
+</div>
 
-    function getRandomAsciiArt() {
-        return cuteAsciiArts[Math.floor(Math.random() * cuteAsciiArts.length)];
-    }
+<script>
+  const CAMPAIGNS = [
+    "Dead Center", "Dark Carnival", "Swamp Fever", "Hard Rain", "The Parish",
+    "The Passing", "The Sacrifice", "No Mercy", "Crash Course", "Death Toll",
+    "Dead Air", "Blood Harvest", "Cold Stream", "The Last Stand"
+  ];
+  const KEY = "l4d2_noheal_done_v1";          // same keys as before: old progress is kept
+  const ROSTER_KEY = "l4d2_noheal_roster_hidden_v1";
 
-    const channels = [
-      "abz", "ac7tionman", "bennymack", "mexicanandy", "amray", "nedx", "adi", "suziesmalls", "alohasteve", "CaptainGee", "carldo", "cellfmade", "mckoreaman", "cowboyheritage", "CRISTRAVELS", "ddurantv", "dexpuppy", "floridaboy", "hamptonbrando", "hyubsama", "iceposeidon", "jackie", "kangjoel", "kimmee", "lettyvision", "lordhito", "luplupka", "mando", "mrbasednyc", "muratstyle", "nanapips", "nanatty", "onesonicirl", "oumb", "sampanday", "shakomako", "shoovy", "sirsweet", "sucymermaid", "suspendas", "vnthony", "wvagabond", "zuesirl", "cytate", "HenryFordHD", "suziesmalls", "Jimmy777s77"
-    ];
+  function load() {
+    try { return new Set(JSON.parse(localStorage.getItem(KEY) || "[]")); }
+    catch (e) { return new Set(); }
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify([...done])); } catch (e) {}
+  }
 
-    let liveChannels = [];
+  let done = load();
+  const list = document.getElementById("list");
+  const chips = document.getElementById("chips");
+  const remEl = document.getElementById("remaining");
 
-    async function fetchChannelData(channel) {
-      try {
-        const res = await fetch(`https://kick.com/api/v1/channels/${channel}`);
-        const data = await res.json();
-        const isLive = data.livestream?.is_live || false;
-        return {
-          name: channel,
-          isLive,
-          viewers: data.livestream?.viewer_count || 0,
-        };
-      } catch (e) {
-        return { name: channel, isLive: false };
-      }
-    }
-
-    async function updateTopStream() {
-      liveChannels = [];
-
-      for (const ch of channels) {
-        const data = await fetchChannelData(ch);
-        if (data.isLive) liveChannels.push(data);
-      }
-
-      if (liveChannels.length > 0) {
-        const top = liveChannels.sort((a, b) => b.viewers - a.viewers)[0];
-        topStreamerName.textContent = top.name;
-        streamIframe.src = `https://player.kick.com/${top.name}?autoplay=true&muted=false`;
-      } else {
-        topStreamerName.textContent = "No live streams";
-        streamIframe.src = "";
-      }
-    }
-
-    function updateTime() {
-      const now = new Date();
-      timeDisplay.textContent = `${now.toLocaleString()} ${getRandomAsciiArt()}`;
-    }
-
-    function skipToNextStream() {
-      if (liveChannels.length > 1) {
-        // Move current top stream to end of array
-        liveChannels.push(liveChannels.shift());
-        const top = liveChannels[0];
-        topStreamerName.textContent = top.name;
-        streamIframe.src = `https://player.kick.com/${top.name}?autoplay=true&muted=false`;
-      }
-    }
-
-    document.getElementById('skipBtn').addEventListener('click', function(e) {
-      e.stopPropagation();
-      skipToNextStream();
+  function render() {
+    list.innerHTML = "";
+    CAMPAIGNS.forEach(name => {
+      const el = document.createElement("div");
+      el.className = "camp" + (done.has(name) ? " done" : "");
+      el.innerHTML = '<span></span><svg class="ico"><use href="#' + (done.has(name) ? "fin" : "finline") + '"/></svg>';
+      el.firstChild.textContent = name;
+      el.onclick = () => {
+        done.has(name) ? done.delete(name) : done.add(name);
+        save(); render();
+      };
+      list.appendChild(el);
     });
 
-    // Initial and auto refresh every 30 minutes
-    updateTopStream();
-    updateTime();
-    setInterval(updateTopStream, 30 * 60 * 1000);
-    setInterval(updateTime, 1000);
-  </script>
+    const left = CAMPAIGNS.filter(c => !done.has(c));
+    remEl.textContent = left.length;
+    chips.innerHTML = "";
+    if (left.length === 0) {
+      const d = document.createElement("div");
+      d.className = "done-all";
+      d.textContent = "CHOMP! CHALLENGE COMPLETE";
+      chips.appendChild(d);
+    } else {
+      left.forEach(c => {
+        const s = document.createElement("span");
+        s.className = "chip"; s.textContent = c;
+        chips.appendChild(s);
+      });
+    }
+  }
 
+  const roster = document.getElementById("roster");
+  const tBtn = document.getElementById("toggleRoster");
+  function applyRoster(h) {
+    roster.classList.toggle("hidden", h);
+    tBtn.textContent = h ? "Show list" : "Hide list";
+  }
+  let hidden = false;
+  try { hidden = localStorage.getItem(ROSTER_KEY) === "1"; } catch (e) {}
+  applyRoster(hidden);
+  tBtn.onclick = () => {
+    hidden = !hidden;
+    try { localStorage.setItem(ROSTER_KEY, hidden ? "1" : "0"); } catch (e) {}
+    applyRoster(hidden);
+  };
+
+  document.getElementById("reset").onclick = () => {
+    if (confirm("Reset all progress?")) { done = new Set(); save(); render(); }
+  };
+
+  window.addEventListener("storage", () => { done = load(); render(); });
+  render();
+</script>
 </body>
 </html>
-
-
-
