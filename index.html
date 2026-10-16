@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kick Viewer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      background: black;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      height: 100%;
+      overflow: hidden;
+    }
+    #streamContainer.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      background: black;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    #controls {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 1001;
+      padding: 8px 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      backdrop-filter: none;
+      background: none;
+    }
+    #skipBtn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 1001;
+      font-size: 0.75rem;
+      opacity: 1;
+      color: #ffcaff;
+      text-shadow: 0 0 4px #ffbdfd;
+      white-space: nowrap;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px 16px;
+    }
+    #topStreamerName {
+      font-weight: bold;
+      font-size: 0.75rem;
+      opacity: 1;
+      color: #ffcaff;
+      text-shadow: 0 0 4px #ffbdfd;
+      white-space: nowrap;
+    }
+    #timeDisplay {
+      font-size: 0.75rem;
+      opacity: 1;
+      color: #ffcaff;
+      text-shadow: 0 0 4px #ffbdfd;
+      white-space: nowrap;
+    }
+    #controls button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="controls" class="cursor-pointer transition-all" onclick="document.getElementById('fullscreenBtn').click()">
+    <span id="topStreamerName">Loading...</span>
+    <span id="timeDisplay" class="ml-2"></span>
+    <button id="fullscreenBtn" class="hidden"><i class="fas fa-expand"></i></button>
+  </div>
+  <button id="skipBtn">⏩</button>
+
+  <div id="streamContainer" class="fullscreen">
+    <iframe id="streamIframe" allowfullscreen allow="autoplay; fullscreen"></iframe>
+  </div>
+
+  <script>
+    const streamIframe = document.getElementById("streamIframe");
+    
+const cuteAsciiArts = [
+    "(っ◕‿◕)っ",
+    "ʕ•́ᴥ•̀ʔっ",
+    "(づ｡◕‿‿◕｡)づ",
+    "ヽ(♡‿♡)ノ",
+    "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
+    "⊂((・▽・))⊃",
+    "ヾ(＾-＾)ノ",
+    "(ﾉ´ヮ`)ﾉ*: ･ﾟ",
+    "(◠‿◠✿)",
+    "(｡♥‿♥｡)",
+    "｡^‿^｡",
+    "(≧◡≦)",
+    "(๑˃ᴗ˂)ﻭ",
+    "٩(◕‿◕｡)۶",
+    "(ღ✪v✪)ღ",
+    "o(≧▽≦)o",
+    "(っˆڡˆς)",
+    "(*≧ω≦*)",
+    "(*^ω^*)",
+    "ฅ^•ﻌ•^ฅ",
+    "(=^-ω-^=)",
+    "(*≧▽≦)",
+    "(=^･^=)",
+    "(・ω・)",
+    "(^・ω・^ )",
+    "(^人^)",
+    "( ´ ▽ ` )ﾉ",
+    "(*^▽^*)",
+    "ヽ(o＾▽＾o)ノ",
+    "o(〃＾▽＾〃)o",
+    "(≧◡≦) ♡",
+    "♡(˃͈ દ ˂͈ ༶ )",
+    "(｡♥‿♥｡)",
+    "(=^-ω-^=)",
+    "(≧◡≦)",
+    "ʕ •ᴥ•ʔ",
+    "(*≧∀≦*)",
+    "(｡♥‿♥｡)",
+    "(≧◡≦)v",
+    "(*≧▽≦)",
+    "(＾▽＾)",
+    "(⌒‿⌒)",
+    "(*≧ω≦)",
+    "(´｡• ᵕ •｡`)",
+    "(。U⁄ ⁄ω⁄ ⁄ U。)",
+    "（＾・ω・＾❁）",
+    "٩(๑❛ᴗ❛๑)۶",
+    "(*≧︶≦))(￣▽￣* )ゞ",
+    "(つ≧▽≦)つ",
+    "(*・∀・*)人(*・∀・*)",
+    "(ﾉ≧∀≦)ﾉ",
+    "ヽ(*⌒▽⌒*)ﾉ",
+    "٩(｡•́‿•̀｡)۶",
+    "( ˘ ³˘)♥",
+    "(灬º‿º灬)♡",
+    "( ˘⌣˘)♡(˘⌣˘ )",
+    "(つω`｡)",
+    "(〃￣ω￣〃ゞ",
+    "(つ≧▽≦)つ",
+    "(●´ω｀●)",
+    "(＾◡＾)",
+    "(♡°▽°♡)",
+    "(*≧ω≦)ﾉ",
+    "｡ﾟ(TヮT)ﾟ｡",
+    "(´｡• ω •｡`)",
+    "(⁄ ⁄•⁄ω⁄•⁄ ⁄)",
+    "( •⌄• ू )✧",
+    "(つ✧ω✧)つ",
+    "(o^▽^o)",
+    "〜(꒪꒳꒪)〜",
+    "(°◡°♡).:｡",
+    "(人*´∀｀)｡*ﾟ+",
+    "٩(♡ε♡ )۶",
+    "(∩^o^)⊃━☆",
+    "(∩˃o˂∩)♡",
+    "(๑♡3♡๑)",
+    "⁽⁽ଘ( ˊᵕˋ )ଓ⁾⁾",
+    "(੭ु｡╹▿╹｡)੭ु⁾⁾",
+    "(｡♥‿♥｡)",
+    "(=^ ◡ ^=)",
+    "ฅ(＾・ω・＾ฅ)",
+    "(*≧∀≦*)",
+    "(ᗒᗨᗕ)",
+    "(U ᵕ U❁)",
+    "(•ө•)♡",
+    "(*꒦ິ꒳꒦ີ)",
+    "٩(๛ ˘ ³˘)۶♥",
+    "( ˘▽˘)っ♨",
+    "(づ｡◕‿‿◕｡)づ",
+    "(＾・ω・＾❁)",
+    "(◍•ᴗ•◍)❤",
+    "(>̯-̮<̯)",
+    "(๑˘︶˘๑)",
+    "(๑˃ᴗ˂)ﻭ",
+    "(ﾉ´ヮ`)ﾉ*: ･ﾟ✧",
+    "(✿╹◡╹)",
+    "(´▽`ʃ♡ƪ)",
+    "(*´∇｀*)",
+    "✿♥‿♥✿",
+    "(｡♥‿♥｡)ﾉ♡",
+    "✧*｡٩(ˊωˋ*)و✧*｡"
+];
+
+
+    function getRandomAsciiArt() {
+        return cuteAsciiArts[Math.floor(Math.random() * cuteAsciiArts.length)];
+    }
+
+    const channels = [
+      "abz", "ac7tionman", "bennymack", "mexicanandy", "amray", "nedx", "adi", "suziesmalls", "alohasteve", "CaptainGee", "carldo", "cellfmade", "mckoreaman", "cowboyheritage", "CRISTRAVELS", "ddurantv", "dexpuppy", "floridaboy", "hamptonbrando", "hyubsama", "iceposeidon", "jackie", "kangjoel", "kimmee", "lettyvision", "lordhito", "luplupka", "mando", "mrbasednyc", "muratstyle", "nanapips", "nanatty", "onesonicirl", "oumb", "sampanday", "shakomako", "shoovy", "sirsweet", "sucymermaid", "suspendas", "vnthony", "wvagabond", "zuesirl", "cytate", "HenryFordHD", "suziesmalls", "Jimmy777s77"
+    ];
+
+    let liveChannels = [];
+
+    async function fetchChannelData(channel) {
+      try {
+        const res = await fetch(`https://kick.com/api/v1/channels/${channel}`);
+        const data = await res.json();
+        const isLive = data.livestream?.is_live || false;
+        return {
+          name: channel,
+          isLive,
+          viewers: data.livestream?.viewer_count || 0,
+        };
+      } catch (e) {
+        return { name: channel, isLive: false };
+      }
+    }
+
+    async function updateTopStream() {
+      liveChannels = [];
+
+      for (const ch of channels) {
+        const data = await fetchChannelData(ch);
+        if (data.isLive) liveChannels.push(data);
+      }
+
+      if (liveChannels.length > 0) {
+        const top = liveChannels.sort((a, b) => b.viewers - a.viewers)[0];
+        topStreamerName.textContent = top.name;
+        streamIframe.src = `https://player.kick.com/${top.name}?autoplay=true&muted=false`;
+      } else {
+        topStreamerName.textContent = "No live streams";
+        streamIframe.src = "";
+      }
+    }
+
+    function updateTime() {
+      const now = new Date();
+      timeDisplay.textContent = `${now.toLocaleString()} ${getRandomAsciiArt()}`;
+    }
+
+    function skipToNextStream() {
+      if (liveChannels.length > 1) {
+        // Move current top stream to end of array
+        liveChannels.push(liveChannels.shift());
+        const top = liveChannels[0];
+        topStreamerName.textContent = top.name;
+        streamIframe.src = `https://player.kick.com/${top.name}?autoplay=true&muted=false`;
+      }
+    }
+
+    document.getElementById('skipBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      skipToNextStream();
+    });
+
+    // Initial and auto refresh every 30 minutes
+    updateTopStream();
+    updateTime();
+    setInterval(updateTopStream, 30 * 60 * 1000);
+    setInterval(updateTime, 1000);
+  </script>
+
+</body>
+</html>
+
+
+
